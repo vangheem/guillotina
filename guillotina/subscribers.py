@@ -1,10 +1,17 @@
 from datetime import datetime
 from dateutil.tz import tzutc
+from guillotina.component import query_utility
 from guillotina import configure
 from guillotina.component._api import get_component_registry
+from guillotina.api.container import DefaultPOST as DefaultPOSTContainer
+from guillotina.api.content import DefaultPOST as DefaultPOSTContent
+from guillotina.api.content import DefaultDELETE
+
 from guillotina.component.interfaces import ComponentLookupError
 from guillotina.component.interfaces import IObjectEvent
+from guillotina.api.httpcache import IHttpCachePolicyUtility
 from guillotina.interfaces import IObjectModifiedEvent
+from guillotina.interfaces import IRequestFinishedEvent
 from guillotina.interfaces import IResource
 
 
@@ -28,3 +35,35 @@ async def object_event_notify(event):
         return []
 
     return await sitemanager.adapters.asubscribers((event.object, event), None)
+
+
+@configure.subscriber(
+    for_=IRequestFinishedEvent)
+async def add_http_cache_headers(event):
+    """This will add, if configured, the corresponding http cache headers
+    on the response
+    """
+    if isinstance(event.view, (DefaultDELETE, DefaultPOSTContainer, DefaultPOSTContent)):
+        # Just update headers if not creating content or method request is delete
+        return
+
+    import pdb; pdb.set_trace()
+
+    # Compute global http cache policy
+    extra_headers = {}
+    global_policy = query_utility(IHttpCachePolicyUtility)
+    if global_policy is not None:
+        extra_headers = global_policy(event.resource, event.request)
+
+    # Update with view headers
+    aux = getattr(event.view, "__extra_headers__", {})
+    if isinstance(aux, dict):
+        extra_headers.update(**aux)
+    elif isinstance(aux, callable):
+        extra_headers.update(**aux(context=event.resource,
+                                   request=event.request))
+
+    if not extra_headers:
+        return
+    # Add http cache headers on response
+    event.response._headers.update(**extra_headers)

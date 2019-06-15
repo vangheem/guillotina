@@ -207,6 +207,40 @@ class AsyncUtility:
 
 
 @configure.service(
+    context=IApplication, method='DELETE', permission='guillotina.AccessContent',
+    name='@testit')
+@configure.service(
+    context=IApplication, method='POST', permission='guillotina.AccessContent',
+    name='@testit')
+@configure.service(
+    context=IApplication, method='HEAD', permission='guillotina.AccessContent',
+    name='@testit')
+@configure.service(
+    context=IApplication, method='GET', permission='guillotina.AccessContent',
+    name='@testit')
+async def noop(context, request):
+    return {}
+
+
+def custom_endpoint_headers(view, context, request):
+    return {
+        'Foo': 'Bar',
+        'Cache-Control': 'overwritten!',
+    }
+
+@configure.service(
+    context=IApplication, method='POST', permission='guillotina.AccessContent',
+    name='@testHttpCache',
+    extra_headers={'from': 'a dictionary'})
+@configure.service(
+    context=IApplication, method='GET', permission='guillotina.AccessContent',
+    name='@testHttpCache',
+    extra_headers=custom_endpoint_headers)
+async def test_http_cache(context, request):
+    return {}
+
+
+@configure.service(
     context=IApplication, method='GET', permission='guillotina.AccessContent',
     name='@match/{foo}/{bar}')
 async def matching_service(context, request):

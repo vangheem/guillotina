@@ -7,6 +7,7 @@ import pytest
 from aiohttp.client_exceptions import ContentTypeError
 from aiohttp.test_utils import TestServer
 from guillotina import testing
+from guillotina import app_settings
 from guillotina.component import get_utility
 from guillotina.component import globalregistry
 from guillotina.const import ROOT_ID
@@ -296,6 +297,7 @@ WHERE zoid != '{}' AND zoid != '{}'
 @pytest.fixture(scope='function')
 def guillotina_main(loop, request):
     globalregistry.reset()
+    test_settings = get_test_settings(request.node)
     aioapp = loop.run_until_complete(
         make_app(settings=get_db_settings(request.node), loop=loop))
     aioapp.config.execute_actions()
@@ -397,3 +399,23 @@ def container_command(db):
 DELETE FROM objects;
 DELETe FROM blobs;
 COMMIT;''')
+
+
+@pytest.fixture(scope='function')
+def simple_httpcache():
+
+    import pdb; pdb.set_trace()
+
+    app_settings.setdefault('load_utilities', {})
+    app_settings['load_utilities']['httpcache'] = {
+        "provides": "guillotina.api.httpcache.IHttpCachePolicyUtility",
+        "factory": "guillotina.api.httpcache.SimpleHttpCachePolicyUtility",
+        "settings": {
+            "max_age": 123,
+            "public": True,
+        }
+    }
+
+    yield
+
+    app_settings['load_utilities'].pop('httpcache')
