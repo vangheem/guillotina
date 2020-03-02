@@ -4,8 +4,7 @@ CHANGELOG
 6.0.0a17 (unreleased)
 ---------------------
 
-- Nothing changed yet.
-
+- Replace travis with github actions [lferran]
 
 6.0.0a16 (2020-03-12)
 ---------------------
