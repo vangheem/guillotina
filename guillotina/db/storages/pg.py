@@ -489,6 +489,10 @@ class PGConnectionManager:
             # terminate force closes all these
             # this step is happening at the end of application shutdown and
             # connections should not be staying open at this step
+            try:
+                await asyncio.wait_for(self._pool.close(), 2)
+            except asyncio.TimeoutError:
+                pass
             self._pool.terminate()
             self._pool = self._read_conn = None
 
