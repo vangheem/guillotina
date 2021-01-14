@@ -863,3 +863,11 @@ class DefaultIDChecker:
 
     async def __call__(self, id_: str, type_: str) -> bool:
         return valid_id(id_)
+
+
+
+async def test_mising_coverage():
+    x = 1
+    y = 2
+    z = 3
+    return x + y + z
