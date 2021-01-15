@@ -54,7 +54,7 @@ class QueueUtility(object):
                     # will be cut off, so we need to wait until we no longer
                     # have an active transaction on the reqeust...
                     await self.queue.put((func, tvars))
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.2)
                     continue
 
                 try:
@@ -69,7 +69,7 @@ class QueueUtility(object):
                 return
             except Exception as e:  # noqa
                 self._exceptions = True
-                logger.error("Worker call failed", exc_info=e)
+                logger.error("Worker call failed!!!", exc_info=e)
                 execute.clear_futures()
             finally:
                 if got_obj:
@@ -85,9 +85,7 @@ class QueueUtility(object):
         return self._total_queued
 
     async def add(self, view):
-        await self.queue.put((view, dump_task_vars()))
-        self._total_queued += 1
-        return self.queue.qsize()
+        ...
 
     async def finalize(self, app):
         pass
